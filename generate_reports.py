@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import evidently
 from evidently import ColumnMapping
@@ -36,17 +37,18 @@ def main():
         report.run(reference_data=train_df, current_data=test_df)
         reports[column] = report
 
+    # Ensure the Reports directory exists, if not create it.
+    reports_dir = "Reports"
+    if not os.path.exists(reports_dir):
+        os.makedirs(reports_dir)
+
     for column, report in reports.items():
         print(f"Report for column: {column}")
         cleaned_column_name = clean_column_name(column)
-        report_path = f"report_{cleaned_column_name}.html"
+        report_path = os.path.join(reports_dir, f"report_{cleaned_column_name}.html")
         report.save_html(report_path)
         print(f"Report saved as {report_path}")
         print("-" * 50)
 
 if __name__ == "__main__":
     main()
-
-
-
-#espérons que ça remarche après relancement
