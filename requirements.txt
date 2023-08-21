@@ -13,3 +13,4 @@ lime
 evidently
 lightgbm
 Flask
+httpcore==0.15
