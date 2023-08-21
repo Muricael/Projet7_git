@@ -1,0 +1,5 @@
+#A mettre dans un fichier install.sh (pour les systèmes Unix) ou install.bat (pour Windows):
+
+pip install -r requirements.txt
+jupyter nbextension install --sys-prefix --symlink --overwrite --py evidently
+jupyter nbextension enable evidently --py --sys-prefix
