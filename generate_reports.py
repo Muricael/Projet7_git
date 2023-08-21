@@ -11,12 +11,49 @@ def clean_column_name(column_name):
 
 def generate_index_page(reports_dir, reports):
     with open(os.path.join(reports_dir, "index.html"), 'w') as f:
-        f.write("<html><body><h2>Evidently Reports</h2>")
+        f.write("""
+        <html>
+        <head>
+            <style>
+                body {
+                    background-color: #2C2C2C;
+                    color: #FFFFFF;
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                }
+                h2 {
+                    margin-bottom: 20px;
+                }
+                a {
+                    color: #00CCFF;
+                    text-decoration: none;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+        <div>
+            <h2>Evidently Reports</h2>
+        """)
         for column in reports.keys():
             cleaned_column_name = clean_column_name(column)
             report_link = f"report_{cleaned_column_name}.html"
-            f.write(f'<a href="{report_link}">{column} Report</a><br>')
-        f.write("</body></html>")
+            f.write(f'<a href="{report_link}">{column} Report</a>')
+        f.write("""
+        </div>
+        </body>
+        </html>
+        """)
+
 
 def main():
     # Load the dataframes

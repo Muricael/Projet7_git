@@ -1,5 +1,5 @@
 from joblib import load
-from flask import Flask, request, jsonify, render_template, render_template_string
+from flask import Flask, request, jsonify, render_template, render_template_string, redirect, url_for
 from my_utilities import custom_loss
 import numpy as np
 import pandas as pd
@@ -53,6 +53,14 @@ def show_individual_report(report_name):
         return render_template_string(content)
     except FileNotFoundError:
         return "Report not found", 404
+    
+#Créer la route pour le bouton 
+@app.route('/generate_reports', methods=['POST'])
+def generate_reports():
+    from generate_reports import main as generate_reports_main
+    generate_reports_main()
+    return redirect(url_for('show_reports'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
