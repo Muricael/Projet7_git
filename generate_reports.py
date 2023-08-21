@@ -9,6 +9,15 @@ from evidently.metrics import ColumnSummaryMetric, ColumnQuantileMetric, ColumnD
 def clean_column_name(column_name):
     return column_name.replace("/", "_").replace(" ", "_").replace("\\", "_")
 
+def generate_index_page(reports_dir, reports):
+    with open(os.path.join(reports_dir, "index.html"), 'w') as f:
+        f.write("<html><body><h2>Evidently Reports</h2>")
+        for column in reports.keys():
+            cleaned_column_name = clean_column_name(column)
+            report_link = f"report_{cleaned_column_name}.html"
+            f.write(f'<a href="{report_link}">{column} Report</a><br>')
+        f.write("</body></html>")
+
 def main():
     # Load the dataframes
     train_df = pd.read_html('train_data.html')[0]
@@ -49,6 +58,8 @@ def main():
         report.save_html(report_path)
         print(f"Report saved as {report_path}")
         print("-" * 50)
+
+    generate_index_page(reports_dir, reports)
 
 if __name__ == "__main__":
     main()

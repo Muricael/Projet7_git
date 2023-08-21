@@ -1,5 +1,5 @@
 from joblib import load
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, render_template_string
 from my_utilities import custom_loss
 import numpy as np
 import pandas as pd
@@ -38,6 +38,21 @@ def predict_api():
         return jsonify({"error": str(e)}), 500
     
     return jsonify(result)
+
+@app.route('/reports')
+def show_reports():
+    with open("Reports/index.html", 'r') as f:
+        content = f.read()
+    return render_template_string(content)
+
+@app.route('/report_<report_name>.html')
+def show_individual_report(report_name):
+    try:
+        with open(f"Reports/report_{report_name}.html", 'r', encoding='utf-8') as f:
+            content = f.read()
+        return render_template_string(content)
+    except FileNotFoundError:
+        return "Report not found", 404
 
 if __name__ == "__main__":
     app.run(debug=True)
