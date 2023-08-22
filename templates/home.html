@@ -173,7 +173,6 @@
         </div>
         <div align="center " class="prediction-section">
             {% if prediction %}
-                <p>{{ prediction }}</p>
                 <img src="{{ url_for('static', filename='jauge_client.png') }}" alt="Client Score">
             {% else %}
                 <p>Entrez des données pour obtenir une prédiction.</p>
