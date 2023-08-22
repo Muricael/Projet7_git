@@ -56,6 +56,35 @@
             width: 50%;
         }
 
+        .custom-select {
+            width: 200px;  /* Ajustez cette valeur pour qu'elle corresponde à la largeur de l'élément 'montant emprunté' */
+            padding: 3px;  /* Ajustez le padding pour correspondre à celui de l'élément 'montant emprunté' */
+            box-sizing: border-box; /* Assure que le padding et la bordure sont inclus dans la largeur totale */
+        }
+
+        .line-container {
+            display: flex;
+            align-items: center; /* Centre les éléments verticalement */
+            gap: 10px; /* Espace entre le titre et les options */
+        }
+
+        .title {
+            margin: 0;  /* Retire les marges du h5 */
+            white-space: nowrap; /* Garde le titre sur une seule ligne */
+            width: 250px; /* Assigner une largeur fixe, ajustez selon vos besoins */
+            flex-shrink: 0; /* Assure que le titre ne rétrécit pas */
+            text-align: left;
+        }
+
+        .radio-container {
+            display: flex;
+            gap: 10px; /* Espace entre "non" et "oui" */
+        }
+
+        .radio-container label {
+            margin: 0;  /* Retire les marges autour des labels */
+        }
+
         #bouton1 {
             display: block;
             margin: 20px auto;
@@ -86,23 +115,66 @@
     <div class="bottom-section">
         <div align=center class="inputs-section">
             <form action="/collect_data" method="post">
-                <input type="text" name="EXT_SOURCE_3" placeholder="EXT_SOURCE_3" required>
-                <input type="text" name="EXT_SOURCE_2" placeholder="EXT_SOURCE_2" required>
-                <input type="text" name="NAME_INCOME_TYPE_Working" placeholder="NAME_INCOME_TYPE_Working (1 or 0)" required>
-                <input type="text" name="NAME_EDUCATION_TYPE_Secondary" placeholder="NAME_EDUCATION_TYPE_Secondary / secondary special (1 or 0)" required>
-                <input type="text" name="NAME_EDUCATION_TYPE_Higher" placeholder="NAME_EDUCATION_TYPE_Higher education (1 or 0)" required>
-                <input type="text" name="OCCUPATION_TYPE_Core_staff" placeholder="OCCUPATION_TYPE_Core staff (1 or 0)" required>
-                <input type="text" name="FLAG_DOCUMENT_3" placeholder="FLAG_DOCUMENT_3 (1 or 0)" required>
-                <input type="text" name="AMT_REQ_CREDIT_BUREAU_HOUR" placeholder="AMT_REQ_CREDIT_BUREAU_HOUR" required>
-                <input type="text" name="CODE_GENDER" placeholder="CODE_GENDER (1 or 0)" required>
-                <input type="text" name="REMBOURSEMENT" placeholder="REMBOURSEMENT" required>
-                <input type="text" name="MONTANT_EMPRUNTE" placeholder="MONTANT EMPRUNTE" required>
+                <input class="custom-select" type="text" name="MONTANT_EMPRUNTE" placeholder="MONTANT EMPRUNTE" required>
+                <input class="custom-select" type="text" name="REMBOURSEMENT" placeholder="REMBOURSEMENT" required>
+                <input class="custom-select" type="text" name="EXT_SOURCE_3" placeholder="SOURCE EXTERNE 3" required>
+                <input class="custom-select" type="text" name="EXT_SOURCE_2" placeholder="SOURCE EXTERNE 2" required>
+                <input class="custom-select" type="text" name="AMT_REQ_CREDIT_BUREAU_HOUR" placeholder="Demandes de crédit dans l'heure précédente" required>
+                <select class="custom-select" name="NAME_INCOME_TYPE_Working" placeholder="Travaillez-vous" required>
+                    <option value="" disabled selected>Travaillez-vous</option>
+                    <option value="0">non</option>
+                    <option value="1">oui</option>
+                </select>
+                <select class="custom-select" name="NAME_EDUCATION_TYPE_Secondary" placeholder="Etudes Secondaires?" required>
+                    <option value="" disabled selected>Etudes secondaires?</option>
+                    <option value="0">non</option>
+                    <option value="1">oui</option>
+                </select>
+                <select class="custom-select" name="NAME_EDUCATION_TYPE_Higher" placeholder="Education Supérieure?" required>
+                    <option value="" disabled selected>Education Supérieure?</option>
+                    <option value="0">non</option>
+                    <option value="1">oui</option>
+                </select>
+                <div class="line-container">
+                    <h5 class="title">Type d'occupation: Personnel essentiel</h5>
+                    <div class="radio-container">
+                        <label>
+                            <input type="radio" name="OCCUPATION_TYPE_Core_staff" value="0" required> non
+                        </label>
+                        <label>
+                            <input type="radio" name="OCCUPATION_TYPE_Core_staff" value="1" required> oui
+                        </label>
+                    </div>
+                </div>
+                <div class="line-container">
+                    <h5 class="title">Flag Document 3</h5>
+                    <div class="radio-container">
+                        <label>
+                            <input type="radio" name="FLAG_DOCUMENT_3" value="0" required> non
+                        </label>
+                        <label>
+                            <input type="radio" name="FLAG_DOCUMENT_3" value="1" required> oui
+                        </label>
+                    </div>
+                </div>
+                <div class="line-container">
+                    <h5 class="title">Sexe</h5>
+                    <div class="radio-container">
+                        <label>
+                            <input type="radio" name="CODE_GENDER" value="0" required> Homme
+                        </label>
+                        <label>
+                            <input type="radio" name="CODE_GENDER" value="1" required> Femme
+                        </label>
+                    </div>
+                </div>
                 <input id="bouton1" type="submit" value="VALIDER">
             </form>
         </div>
         <div align="center " class="prediction-section">
             {% if prediction %}
                 <p>{{ prediction }}</p>
+                <img src="{{ url_for('static', filename='jauge_client.png') }}" alt="Client Score">
             {% else %}
                 <p>Entrez des données pour obtenir une prédiction.</p>
             {% endif %}
