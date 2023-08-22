@@ -57,10 +57,10 @@ def generate_index_page(reports_dir, reports):
 
 def main():
     # Load the dataframes
-    train_df = pd.read_html('train_data.html')[0]
-    test_df = pd.read_html('test_data.html')[0]
+    train_df = pd.read_csv('train_data.csv')
+    test_df = pd.read_csv('test_data.csv')
 
-    # Drop the first column (assuming it's an unwanted index column)
+    # Supprimer la 1ere colonne
     train_df = train_df.drop(train_df.columns[0], axis=1)
     test_df = test_df.drop(test_df.columns[0], axis=1)
 
