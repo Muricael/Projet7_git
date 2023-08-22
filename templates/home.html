@@ -19,7 +19,8 @@
 
         .top-section {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between;  /* Distribue uniformément les blocs */
+            flex-direction: row;  /* Assure que les blocs sont côte à côte */
         }
 
         .box {
@@ -41,10 +42,13 @@
             flex-direction: row;
         }
 
-        .inputs-section, .prediction-section {
-            flex: 1;
+        .inputs-section, .prediction-section, .data-drift-section {  /* Ajout d'une classe pour le troisième pavé */
+            flex: 1;  /* Chaque bloc prendra un tiers de l'espace disponible */
+            text-align: center;
             padding: 20px;
             box-sizing: border-box;
+            margin-left: 100px;
+            margin_right:100px,
         }
 
         form {
@@ -96,23 +100,10 @@
 }
 
     </style>
-    <h1 align="center">LE CREDIT POUR LES NULS</h1>
+    <h1 align="center">LE CREDIT QUI DIT OUI</h1>
 </head>
 <body>
     <div class="top-section">
-        <div class="box" id="lime-plotly-div">
-            <img src="{{ url_for('static', filename='lime_explanation.png') }}" alt="Explication LIME">
-        </div>
-            <h2 align="center">Data Drift</h2>
-            <form action="/generate_reports" method="post">
-                <input align="center" id="bouton1" type="submit" value="DATA DRIFT">
-            </form>
-        </div>
-        <div class="box" id="right-box">
-            <img src="{{ url_for('static', filename='xgb_feature_importance.png') }}" alt="Explication xgb">
-        </div>
-    </div>
-    <div class="bottom-section">
         <div align=center class="inputs-section">
             <form action="/collect_data" method="post">
                 <input class="custom-select" type="text" name="MONTANT_EMPRUNTE" placeholder="MONTANT EMPRUNTE" required>
@@ -177,6 +168,17 @@
             {% else %}
                 <p>Entrez des données pour obtenir une prédiction.</p>
             {% endif %}
+        </div>
+        <div class="data-drift-section">
+            <h2 align="center">Data Drift</h2>
+            <form action="/generate_reports" method="post">
+                <input align="center" id="bouton1" type="submit" value="DATA DRIFT">
+            </form>
+        </div>
+    </div>
+    <div class="bottom-section">
+        <div class="box" id="lime-plotly-div">
+            <img src="{{ url_for('static', filename='lime_explanation.png') }}" alt="Explication LIME">
         </div>
     </div>
 </body>
