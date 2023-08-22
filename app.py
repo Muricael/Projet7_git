@@ -11,7 +11,7 @@ loaded_data = load('xgb_model.joblib')
 model = loaded_data['model']
 
 @app.route('/')
-def home():
+def index():
     return render_template('home.html')
 
 @app.route('/predict_api', methods=['POST'])
@@ -31,8 +31,7 @@ def predict_api():
         output = model.predict(data_df)
         proba = model.predict_proba(data_df)[0][1]
         result = {
-            "prediction": int(output[0]),
-            "probability_class_1": float(proba)
+            "probabilité": float(proba)
         }
     except ValueError as e:
         return jsonify({"error": str(e)}), 500
@@ -54,13 +53,40 @@ def show_individual_report(report_name):
     except FileNotFoundError:
         return "Report not found", 404
     
-#Créer la route pour le bouton 
+#Créer la route pour le bouton Datadrift
 @app.route('/generate_reports', methods=['POST'])
 def generate_reports():
     from generate_reports import main as generate_reports_main
     generate_reports_main()
     return redirect(url_for('show_reports'))
 
+#Créer la route pour 
+@app.route('/collect_data', methods=['POST'])
+def collect_and_save_data():
+    data = {
+        "EXT_SOURCE_3": float(request.form.get('EXT_SOURCE_3')),
+        "EXT_SOURCE_2": float(request.form.get('EXT_SOURCE_2')),
+        "NAME_INCOME_TYPE_Working": int(request.form.get('NAME_INCOME_TYPE_Working')),
+        "NAME_EDUCATION_TYPE_Secondary / secondary special": int(request.form.get('NAME_EDUCATION_TYPE_Secondary')),
+        "NAME_EDUCATION_TYPE_Higher education": int(request.form.get('NAME_EDUCATION_TYPE_Higher')),
+        "OCCUPATION_TYPE_Core staff": int(request.form.get('OCCUPATION_TYPE_Core_staff')),
+        "FLAG_DOCUMENT_3": int(request.form.get('FLAG_DOCUMENT_3')),
+        "AMT_REQ_CREDIT_BUREAU_HOUR": float(request.form.get('AMT_REQ_CREDIT_BUREAU_HOUR')),
+        "CODE_GENDER": int(request.form.get('CODE_GENDER')),
+        "PAYMENT_RATE": float(request.form.get('PAYMENT_RATE'))
+    }
+    
+    # Transformer les données en DataFrame
+    data_df = pd.DataFrame([data])
+
+    # Faire une prédiction
+    try:
+        proba = model.predict_proba(data_df)[0][1]
+        prediction_result = "Probabilité : {:.2f}%".format(proba*100)
+    except ValueError as e:
+        prediction_result = "Erreur lors de la prédiction: {}".format(str(e))
+    
+    return render_template('home.html', prediction=prediction_result)
 
 if __name__ == "__main__":
     app.run(debug=True)
