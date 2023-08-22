@@ -98,12 +98,11 @@ def collect_and_save_data():
     # Faire une prédiction
     try:
         proba = model.predict_proba(data_df)[0][1]
-        prediction_result = "Probabilité : {:.2f}%".format(proba*100)
         draw_client(proba)
     except ValueError as e:
         prediction_result = "Erreur lors de la prédiction: {}".format(str(e))
     
-    return render_template('home.html', prediction=prediction_result)
+    return render_template('home.html', prediction=proba)
 
 
 def draw_client(accuracy_score):
@@ -141,6 +140,11 @@ def draw_client(accuracy_score):
     ax.set_ylim([0, 0.6])
     ax.set_xlim([0, np.pi])
     ax.set_title("EVALUATION DU CLIENT", va="bottom")
+
+     # Ajouter le message "CREDIT APPROUVE" ou "CREDIT REFUSE"
+    credit_message = "CREDIT APPROUVE" if accuracy_score >= 0.70 else "CREDIT REFUSE"
+    color = "red"
+    ax.text(0.5, 0.1, credit_message, color=color, ha="center", va="center", transform=ax.transAxes, fontsize=20, weight='bold')
 
     # Ajouter le score en tant que légende
     ax.legend([needle], [f'Score = {accuracy_score * 100:.2f}%'])
