@@ -16,6 +16,22 @@ app = Flask(__name__, static_folder='Divers', static_url_path='/Divers')
 loaded_data = load('xgb_model.joblib')
 model = loaded_data['model']
 
+def save_data(data):
+    """Enregistre les données collectées dans un fichier CSV."""
+
+    # Lire les données existantes
+    df = pd.read_csv("test_data.csv", index_col=0)
+
+    # Récupère le dernier index et l'incrémente
+    last_index = df.index[-1]
+    new_index = last_index + 1
+
+    # Ajoutez la nouvelle entrée avec le nouvel index
+    df = df.append(pd.Series(data, name=new_index))
+
+    # Enregistrez les données mises à jour
+    df.to_csv("test_data.csv")
+
 @app.route('/')
 def index():
     return render_template('home.html')
@@ -99,7 +115,6 @@ def collect_and_save_data():
     # Transformer les données en DataFrame
     data_df = pd.DataFrame([data])
 
-    # Faire une prédiction
     try:
         proba = model.predict_proba(data_df)[0][1]
         image_path = draw_client(proba)
@@ -107,7 +122,14 @@ def collect_and_save_data():
     except ValueError as e:
         prediction_result = "Erreur lors de la prédiction: {}".format(str(e))
 
+    # Définir la valeur de TARGET en fonction de la probabilité
+    data["TARGET"] = 1 if proba >= 0.7 else 0
 
+    # Transformer les données en DataFrame (à nouveau pour inclure la colonne TARGET)
+    data_df = pd.DataFrame([data])
+
+    # Enregistre les données
+    save_data(data)
 
     return render_template('home.html', prediction=proba, image_path=image_path)
 

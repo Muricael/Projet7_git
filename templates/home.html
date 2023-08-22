@@ -48,7 +48,7 @@
             padding: 20px;
             box-sizing: border-box;
             margin-left: 100px;
-            margin_right:100px,
+            margin-right:100px,
         }
 
         form {
@@ -106,11 +106,11 @@
     <div class="top-section">
         <div align=center class="inputs-section">
             <form action="/collect_data" method="post">
-                <input class="custom-select" type="text" name="MONTANT_EMPRUNTE" placeholder="MONTANT EMPRUNTE" required>
-                <input class="custom-select" type="text" name="REMBOURSEMENT" placeholder="REMBOURSEMENT" required>
-                <input class="custom-select" type="text" name="EXT_SOURCE_3" placeholder="SOURCE EXTERNE 3" required>
-                <input class="custom-select" type="text" name="EXT_SOURCE_2" placeholder="SOURCE EXTERNE 2" required>
-                <input class="custom-select" type="text" name="AMT_REQ_CREDIT_BUREAU_HOUR" placeholder="Demandes de crédit dans l'heure précédente" required>
+                <input class="custom-select" type="number" name="MONTANT_EMPRUNTE" placeholder="MONTANT EMPRUNTE" required>
+                <input class="custom-select" type="number" name="REMBOURSEMENT" placeholder="REMBOURSEMENT" required>
+                <input class="custom-select" type="number" step="0.001" min="0" max="100" name="EXT_SOURCE_3" placeholder="SOURCE EXTERNE 3" required>
+                <input class="custom-select" type="number" step="0.001" min="0" max="100" name="EXT_SOURCE_2" placeholder="SOURCE EXTERNE 2" required>
+                <input class="custom-select" type="number" step="1" min="0" name="AMT_REQ_CREDIT_BUREAU_HOUR" placeholder="Demandes de crédit dans l'heure précédente" required>
                 <select class="custom-select" name="NAME_INCOME_TYPE_Working" placeholder="Travaillez-vous" required>
                     <option value="" disabled selected>Travaillez-vous</option>
                     <option value="0">non</option>
