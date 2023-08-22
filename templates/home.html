@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -99,17 +100,16 @@
 </head>
 <body>
     <div class="top-section">
-        <div class="box" id="left-box">
-            Essai1
+        <div class="box" id="lime-plotly-div">
+            <img src="{{ url_for('static', filename='lime_explanation.png') }}" alt="Explication LIME">
         </div>
-        <div class="box" id="center-box">
             <h2 align="center">Data Drift</h2>
             <form action="/generate_reports" method="post">
                 <input align="center" id="bouton1" type="submit" value="DATA DRIFT">
             </form>
         </div>
         <div class="box" id="right-box">
-            Essai2
+            <img src="{{ url_for('static', filename='xgb_feature_importance.png') }}" alt="Explication xgb">
         </div>
     </div>
     <div class="bottom-section">
