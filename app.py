@@ -8,9 +8,59 @@ import matplotlib
 matplotlib.use('Agg')
 import lime
 from lime import lime_tabular
-matplotlib.use('Agg')
 
 app = Flask(__name__, static_folder='Divers', static_url_path='/Divers')
+
+# Charger les données
+data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
+sk_ids_list = data1.index.tolist()
+columns = list(data1.columns)
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    sk_id = 100002  # Valeur par défaut
+    results_col3 = {} 
+    results_col4 = {}
+
+    if request.method == 'POST':
+        sk_id = int(request.form.get('SK_ID_CURR', 100002))
+        results = display_info_for_sk_id(sk_id)
+        
+        selected_columns = request.form.getlist('columns')
+        for col in selected_columns:
+            results_col3[col] = results.get(col + " (Colonne 3)")
+            results_col4[col] = results.get(col + " (Colonne 4)")
+
+    return render_template('home.html', columns=columns, sk_ids_list=sk_ids_list, SK_ID_CURR =sk_id, results_col3=results_col3, results_col4=results_col4)
+
+
+def find_decile(value, column):
+    decile = pd.qcut(data1[column], 10, labels=False, duplicates='drop')
+    return str(decile.loc[value] + 1) + "/10"
+
+def display_info_for_sk_id(sk_id):
+    result = {}
+    
+    for col in data1.columns:
+        client_value = data1.loc[sk_id, col]
+        
+        # Gestion des cas spéciaux
+        if col == "TARGET":
+            mode_val = data1[col].mode().iloc[0]
+            result[col + " (Colonne 3)"] = str(int(mode_val))
+            result[col + " (Colonne 4)"] = "Accepté" if client_value == 1 else "Refusé"
+        elif col == "AMT_REQ_CREDIT_BUREAU_HOUR":
+            result[col + " (Colonne 3)"] = 0
+            result[col + " (Colonne 4)"] = "Cool" if client_value == 0 else "Pas cool"
+        elif len(data1[col].unique()) == 2:  # Si la colonne est binaire, et changement de df par data
+            mode_val = data1[col].mode().iloc[0]
+            result[col + " (Colonne 3)"] = str(int(mode_val))
+            result[col + " (Colonne 4)"] = "Majoritaire" if client_value == mode_val else "Minoritaire"
+        else:
+            result[col + " (Colonne 3)"] = data1[col].mean()
+            result[col + " (Colonne 4)"] = find_decile(sk_id, col)
+            
+    return result
 
 # Charger le modèle
 loaded_data = load('xgb_model.joblib')
@@ -31,10 +81,6 @@ def save_data(data):
 
     # Enregistrez les données mises à jour
     df.to_csv("test_data.csv")
-
-@app.route('/')
-def index():
-    return render_template('home.html')
 
 @app.route('/predict_api', methods=['POST'])
 def predict_api():
@@ -87,12 +133,22 @@ def generate_reports():
 def collect_and_save_data():
 
     # Récupération des valeurs
-    remboursement_str = request.form.get('REMBOURSEMENT')
-    montant_emprunte_str = request.form.get('MONTANT_EMPRUNTE')
+    remboursement = 0.0
+    montant_emprunte = 0.0
 
-    remboursement = float(remboursement_str)
-    montant_emprunte = float(montant_emprunte_str)
-    
+    try:
+        remboursement_str = request.form.get('REMBOURSEMENT')
+        montant_emprunte_str = request.form.get('MONTANT_EMPRUNTE')
+
+        if remboursement_str is None or montant_emprunte_str is None:
+            raise ValueError("L'une des valeurs est manquante")
+
+        remboursement = float(remboursement_str)
+        montant_emprunte = float(montant_emprunte_str)
+
+    except (TypeError, ValueError) as e:
+        print(f"Erreur lors de la conversion : {e}")
+        
     # Calcul de PAYMENT_RATE
     try:
         payment_rate = remboursement / montant_emprunte
