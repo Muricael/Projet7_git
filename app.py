@@ -15,28 +15,35 @@ app = Flask(__name__, static_folder='Divers', static_url_path='/Divers')
 data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
 sk_ids_list = data1.index.tolist()
 columns = list(data1.columns)
-
+#-------------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    sk_id = 100002  # Valeur par défaut
-    results_col3 = {} 
-    results_col4 = {}
+    #Création entrée visu et colonnes
+    sk_id = request.args.get('sk_id', 100002, type=int)
+    selected_results = []
 
     if request.method == 'POST':
         sk_id = int(request.form.get('SK_ID_CURR', 100002))
-        results = display_info_for_sk_id(sk_id)
+        all_results = display_info_for_sk_id(sk_id)
         
         selected_columns = request.form.getlist('columns')
         for col in selected_columns:
-            results_col3[col] = results.get(col + " (Colonne 3)")
-            results_col4[col] = results.get(col + " (Colonne 4)")
+            result = {
+                "name": col,
+                "value_col3": all_results[col + " (Colonne 3)"],
+                "value_col4": all_results[col + " (Colonne 4)"]
+            }
+            selected_results.append(result)
 
-    return render_template('home.html', columns=columns, sk_ids_list=sk_ids_list, SK_ID_CURR =sk_id, results_col3=results_col3, results_col4=results_col4)
+    return render_template('home.html', columns=columns, sk_ids_list=sk_ids_list, SK_ID_CURR=sk_id, selected_results=selected_results)
 
+#-------------------------------------------------------------------------------------------------------------------
 
 def find_decile(value, column):
     decile = pd.qcut(data1[column], 10, labels=False, duplicates='drop')
     return str(decile.loc[value] + 1) + "/10"
+
+#-------------------------------------------------------------------------------------------------------------------
 
 def display_info_for_sk_id(sk_id):
     result = {}
@@ -62,25 +69,13 @@ def display_info_for_sk_id(sk_id):
             
     return result
 
+#-------------------------------------------------------------------------------------------------------------------
+
 # Charger le modèle
 loaded_data = load('xgb_model.joblib')
 model = loaded_data['model']
 
-def save_data(data):
-    """Enregistre les données collectées dans un fichier CSV."""
-
-    # Lire les données existantes
-    df = pd.read_csv("test_data.csv", index_col=0)
-
-    # Récupère le dernier index et l'incrémente
-    last_index = df.index[-1]
-    new_index = last_index + 1
-
-    # Ajoutez la nouvelle entrée avec le nouvel index
-    df = df.append(pd.Series(data, name=new_index))
-
-    # Enregistrez les données mises à jour
-    df.to_csv("test_data.csv")
+#-------------------------------------------------------------------------------------------------------------------
 
 @app.route('/predict_api', methods=['POST'])
 def predict_api():
@@ -106,6 +101,8 @@ def predict_api():
     
     return jsonify(result)
 
+#-------------------------------------------------------------------------------------------------------------------
+
 @app.route('/reports')
 def show_reports():
     with open("Reports/index.html", 'r') as f:
@@ -127,6 +124,8 @@ def generate_reports():
     from generate_reports import main as generate_reports_main
     generate_reports_main()
     return redirect(url_for('show_reports'))
+
+#-------------------------------------------------------------------------------------------------------------------
 
 #Créer la route pour la collecte de data
 @app.route('/collect_data', methods=['POST'])
@@ -187,8 +186,54 @@ def collect_and_save_data():
     # Enregistre les données
     save_data(data)
 
-    return render_template('home.html', prediction=proba, image_path=image_path)
+    new_index = save_data(data)
 
+    # Affichez les informations du tableau pour cet ID
+    all_results = display_info_for_sk_id(new_index)
+    selected_columns = columns  # J'assume que vous voulez afficher toutes les colonnes ici. Sinon, ajustez cela en conséquence.
+    selected_results = []
+
+    for col in selected_columns:
+        result = {
+            "name": col,
+            "value_col3": all_results[col + " (Colonne 3)"],
+            "value_col4": all_results[col + " (Colonne 4)"]
+        }
+        selected_results.append(result)
+
+    return render_template('home.html', columns=columns, sk_ids_list=sk_ids_list, SK_ID_CURR=new_index, selected_results=selected_results, prediction=proba, image_path=image_path)
+
+#-------------------------------------------------------------------------------------------------------------------
+
+def save_data(data):
+    """Enregistre les données collectées dans deux fichiers CSV."""
+
+    # --- Pour test_data.csv ---
+
+    # Lire les données existantes depuis test_data.csv
+    df_test = pd.read_csv("test_data.csv", index_col=0)
+
+    # Récupère le dernier index de test_data.csv et l'incrémente
+    last_index_test = df_test.index[-1] if not df_test.empty else 0
+    new_index_test = last_index_test + 1
+
+    # Ajoutez la nouvelle entrée avec le nouvel index pour test_data.csv
+    df_test = df_test.append(pd.Series(data, name=new_index_test))
+
+    # Enregistrez les données mises à jour dans test_data.csv
+    df_test.to_csv("test_data.csv")
+
+    # Pour complet_data.csv
+
+    df_complet = pd.read_csv("complet_data.csv", index_col=0)
+    last_index_complet = df_complet.index[-1] if not df_complet.empty else 0
+    new_index_complet = last_index_complet + 1
+    df_complet = df_complet.append(pd.Series(data, name=new_index_complet))
+    df_complet.to_csv("complet_data.csv")
+
+    return new_index_complet  # retourne l'index créé pour complet_data.csv pour le tableau
+
+#-------------------------------------------------------------------------------------------------------------------
 
 def draw_client(accuracy_score):
     plt.figure()
@@ -245,6 +290,8 @@ def draw_client(accuracy_score):
 
     return image_path
 
+#-------------------------------------------------------------------------------------------------------------------
+
 def draw_lime(data_df, model):
     print("Fonction draw_lime appelée")
     tables = pd.read_csv('train_data.csv', index_col="SK_ID_CURR")
@@ -274,7 +321,7 @@ def draw_lime(data_df, model):
     fig_lime.set_size_inches(current_width * 0.8, current_height * 0.8)
     
 
-    # Améliorations esthétiques (vous pouvez ajouter/modifier selon vos préférences)
+    # Améliorations esthétiques
     ax = fig_lime.gca()
     ax.set_facecolor('lightgray')
     ax.grid(axis='x', linestyle='--', alpha=0.7)
@@ -295,6 +342,8 @@ def draw_lime(data_df, model):
     plt.close(fig_lime)
 
     return lime_image_path
+
+#-------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
