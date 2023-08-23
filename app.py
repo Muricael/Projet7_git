@@ -11,11 +11,25 @@ from lime import lime_tabular
 
 app = Flask(__name__, static_folder='Divers', static_url_path='/Divers')
 
+
 # Charger les données
 data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
 sk_ids_list = data1.index.tolist()
 columns = list(data1.columns)
+
 #-------------------------------------------------------------------------------------------------------------------
+
+def custom_loss(y_true, y_pred):
+    cm = confusion_matrix(y_true, y_pred)
+    fn_weight = 10.0  # poids pour les faux négatifs
+    fp_weight = 10.0  # poids pour les faux positifs
+    return cm[0, 1] * fp_weight + cm[1, 0] * fn_weight
+
+# Faire une fonction d'évaluation personnalisée pour GridSearch
+custom_scorer = make_scorer(custom_loss, greater_is_better=False)
+
+#-------------------------------------------------------------------------------------------------------------------
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
         # Mise à jour des données
