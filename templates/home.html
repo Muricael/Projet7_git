@@ -16,6 +16,33 @@
             background-color: #2C2C2C;
             color: hsl(54, 100%, 50%)
         }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            background-color: #4CAF50;
+            color: white;
+        }
 
         .top-section {
             display: flex;
@@ -39,11 +66,19 @@
         .bottom-section {
             flex: 2;
             display: flex;
+            justify-content: space-between; 
             flex-direction: row;
         }
 
-        .inputs-section, .prediction-section, .data-drift-section {  /* Ajout d'une classe pour le troisième pavé */
-            flex: 1;  /* Chaque bloc prendra un tiers de l'espace disponible */
+        .bottom-section > .box, .bottom-section > div {
+            flex: 1;  /* Chaque bloc prendra la moitié de l'espace disponible */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+
+        .inputs-section, .prediction-section, .data-drift-section {  
+            flex: 1; 
             text-align: center;
             padding: 20px;
             box-sizing: border-box;
@@ -61,16 +96,20 @@
             width: 50%;
         }
 
+        .checkbox-line {
+            display: inline-block;
+            margin-right: 15px;  
+}
         .custom-select {
-            width: 200px;  /* Ajustez cette valeur pour qu'elle corresponde à la largeur de l'élément 'montant emprunté' */
-            padding: 3px;  /* Ajustez le padding pour correspondre à celui de l'élément 'montant emprunté' */
-            box-sizing: border-box; /* Assure que le padding et la bordure sont inclus dans la largeur totale */
+            width: 200px;
+            padding: 3px;  
+            box-sizing: border-box; 
         }
 
         .line-container {
             display: flex;
-            align-items: center; /* Centre les éléments verticalement */
-            gap: 10px; /* Espace entre le titre et les options */
+            align-items: center; 
+            gap: 10px; 
         }
 
         .title {
@@ -180,6 +219,59 @@
         <div class="box" id="lime-plotly-div">
             <img src="{{ url_for('static', filename='lime_explanation.png') }}" alt="Explication LIME">
         </div>
-    </div>
+        <div>
+            <h3>ID CLIENT</h3>
+            <form method="post">
+                <label for="sk_id">SK_ID:</label>
+                <input list="sk_ids" name="sk_id" id="sk_id" value="{{ sk_id }}" required>
+                <datalist id="sk_ids">
+                    {% for id in sk_ids_list %}
+                        <option value="{{ id }}">
+                    {% endfor %}
+                </datalist>
+            </form>
+        </div>
+        
+        <div>
+            <h3>Sélection:</h3>
+            <form method="post">
+                {% for col in columns %}
+                    <div class="checkbox-line">
+                        <input type="checkbox" name="columns" value="{{ col }}" id="{{ col }}">
+                        <label for="{{ col }}">{{ col }}</label>
+                    </div>
+                {% endfor %}
+                <br>
+                <input type="submit" value="Comparer">
+            </form>
+        </div>
+        
+        <div>
+            <h3>GENERAL</h3>
+            <table border="1">
+                {% if results_col3 %}
+                    {% for col, val in results_col3.items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            <td>{{ val }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </table>
+        </div>
+        
+        <div>
+            <h3>Colonnes 4</h3>
+            <table border="1">
+                {% if results_col4 %}
+                    {% for col, val in results_col4.items() %}
+                        <tr>
+                            <td>{{ col }}</td>
+                            <td>{{ val }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+            </table>
+        </div>
 </body>
 </html>
