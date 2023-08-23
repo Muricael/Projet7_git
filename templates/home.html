@@ -24,17 +24,17 @@
         }
 
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #333333;
             padding: 8px;
             text-align: left;
         }
 
         tr:nth-child(even) {
-            background-color: #f2f2f2;
+            background-color: #020202;
         }
 
         tr:hover {
-            background-color: #ddd;
+            background-color: #000000;
         }
 
         th {
@@ -219,22 +219,14 @@
         <div class="box" id="lime-plotly-div">
             <img src="{{ url_for('static', filename='lime_explanation.png') }}" alt="Explication LIME">
         </div>
-        <div>
-            <h3>ID CLIENT</h3>
-            <form method="post">
-                <label for="sk_id">SK_ID:</label>
-                <input list="sk_ids" name="sk_id" id="sk_id" value="{{ sk_id }}" required>
-                <datalist id="sk_ids">
-                    {% for id in sk_ids_list %}
-                        <option value="{{ id }}">
-                    {% endfor %}
-                </datalist>
-            </form>
-        </div>
         
         <div>
             <h3>Sélection:</h3>
             <form method="post">
+                <!-- Ajout du champ pour SK_ID_CURR -->
+                <label for="SK_ID_CURR">SK_ID_CURR:</label>
+                <input type="text" id="SK_ID_CURR" name="SK_ID_CURR" value="{{ SK_ID_CURR }}">
+        
                 {% for col in columns %}
                     <div class="checkbox-line">
                         <input type="checkbox" name="columns" value="{{ col }}" id="{{ col }}">
@@ -242,35 +234,29 @@
                     </div>
                 {% endfor %}
                 <br>
-                <input type="submit" value="Comparer">
+                <input type="submit" value="VALIDER">
             </form>
         </div>
         
         <div>
-            <h3>GENERAL</h3>
+            <h3>Résultats</h3>
             <table border="1">
-                {% if results_col3 %}
-                    {% for col, val in results_col3.items() %}
+                <thead>
+                    <tr>
+                        <th>Nom de la colonne</th>
+                        <th>Colonne 3</th>
+                        <th>Colonne 4</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in selected_results %}
                         <tr>
-                            <td>{{ col }}</td>
-                            <td>{{ val }}</td>
+                            <td>{{ result.name }}</td>
+                            <td>{{ result.value_col3 }}</td>
+                            <td>{{ result.value_col4 }}</td>
                         </tr>
                     {% endfor %}
-                {% endif %}
-            </table>
-        </div>
-        
-        <div>
-            <h3>Colonnes 4</h3>
-            <table border="1">
-                {% if results_col4 %}
-                    {% for col, val in results_col4.items() %}
-                        <tr>
-                            <td>{{ col }}</td>
-                            <td>{{ val }}</td>
-                        </tr>
-                    {% endfor %}
-                {% endif %}
+                </tbody>
             </table>
         </div>
 </body>
