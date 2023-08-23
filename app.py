@@ -148,16 +148,16 @@ def draw_client(accuracy_score):
     # Dessiner l'arc de la jauge pour la plage de 0 à 70% (en rouge)
     arc_red = np.linspace(0, 0.7 * np.pi, 100)
     r_red = np.full(100, 0.6)
-    ax_client.plot(arc_red, r_red, color="red", linewidth=15)
+    ax_client.plot(arc_red, r_red, color="black", linewidth=15)
 
     # Dessiner l'arc de la jauge pour la plage de 70 à 100% (en bleu)
     arc_blue = np.linspace(0.7 * np.pi, np.pi, 100)
     r_blue = np.full(100, 0.6)
-    ax_client.plot(arc_blue, r_blue, color="darkblue", linewidth=15)
+    ax_client.plot(arc_blue, r_blue, color="darkorange", linewidth=15)
 
     # Calculer l'angle pour l'aiguille
     theta = np.pi * (normalized_score)
-    needle, = ax_client.plot([theta, theta], [0, 0.6], color='darkred', linewidth=2)
+    needle, = ax_client.plot([theta, theta], [0, 0.6], color='darkorange', linewidth=2)
 
     # Configurer les angles et étiquettes en pourcentage
     ax_client.set_theta_zero_location("W")
@@ -173,7 +173,7 @@ def draw_client(accuracy_score):
 
      # Ajouter le message "CREDIT APPROUVE" ou "CREDIT REFUSE"
     credit_message = "CREDIT APPROUVE" if accuracy_score >= 0.70 else "CREDIT REFUSE"
-    color = "red"
+    color = "black"
     ax_client.text(0.5, 0.1, credit_message, color=color, ha="center", va="center", transform=ax_client.transAxes, fontsize=20, weight='bold')
 
     # Ajouter le score en tant que légende
@@ -190,8 +190,8 @@ def draw_client(accuracy_score):
     return image_path
 
 def draw_lime(data_df, model):
-    
-    tables = pd.read_csv('train_data.csv')
+    print("Fonction draw_lime appelée")
+    tables = pd.read_csv('train_data.csv', index_col="SK_ID_CURR")
     X_train = tables.drop('TARGET', axis=1)
     y_train = tables['TARGET']
 
@@ -201,7 +201,11 @@ def draw_lime(data_df, model):
                                                 verbose=True, 
                                                 mode='classification')
     sample_data = X_train.iloc[0].values
-    exp = explainer.explain_instance(sample_data, model.predict_proba, num_features=10)
+    try:
+        exp = explainer.explain_instance(sample_data, model.predict_proba, num_features=10)
+        print("LIME explanation generated successfully.")
+    except Exception as e:
+        print(f"Error during LIME explanation: {e}")
 
     # Utilisation de la méthode as_pyplot_figure pour générer le graphique
     fig_lime = exp.as_pyplot_figure()
@@ -224,9 +228,9 @@ def draw_lime(data_df, model):
     bars = ax.patches
     for bar in bars:
         if bar.get_facecolor()[0] == 1.0:  # Supposant que le rouge est représenté par (1, 0, 0, 1)
-            bar.set_facecolor('darkblue')
+            bar.set_facecolor('black')
         else:
-            bar.set_facecolor('darkred')
+            bar.set_facecolor('orange')
 
     # Sauvegarder le graphique dans le dossier "Divers"
     lime_image_path = "Divers/lime_explanation.png"
@@ -235,8 +239,6 @@ def draw_lime(data_df, model):
     plt.close(fig_lime)
 
     return lime_image_path
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
