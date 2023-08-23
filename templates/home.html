@@ -226,12 +226,12 @@
                 <!-- Ajout du champ pour SK_ID_CURR -->
                 <label for="SK_ID_CURR">SK_ID_CURR:</label>
                 <input type="text" id="SK_ID_CURR" name="SK_ID_CURR" value="{{ SK_ID_CURR }}">
-        
+                
                 {% for col in columns %}
-                    <div class="checkbox-line">
-                        <input type="checkbox" name="columns" value="{{ col }}" id="{{ col }}">
-                        <label for="{{ col }}">{{ col }}</label>
-                    </div>
+                <div class="checkbox-line">
+                    <input type="checkbox" name="selected_columns" value="{{ col }}" id="{{ col }}" {% if col in selected_results[0] %}checked{% endif %}>
+                    <label for="{{ col }}">{{ col }}</label>
+                </div>
                 {% endfor %}
                 <br>
                 <input type="submit" value="VALIDER">
@@ -259,5 +259,6 @@
                 </tbody>
             </table>
         </div>
+          
 </body>
 </html>

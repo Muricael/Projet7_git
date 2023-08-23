@@ -1,4 +1,4 @@
-from joblib import load
+from joblib import load, dump
 from flask import Flask, request, jsonify, render_template, render_template_string, redirect, url_for
 from my_utilities import custom_loss
 from sklearn.metrics import make_scorer,confusion_matrix
@@ -7,16 +7,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
+import xgboost as xgb
 import lime
 from lime import lime_tabular
+from imblearn.pipeline import Pipeline as imPipeline
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import train_test_split
 
 app = Flask(__name__, static_folder='Divers', static_url_path='/Divers')
 
+@app.before_first_request
+def init_model():
+    train_model()
 
-# Charger les données
-data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
-sk_ids_list = data1.index.tolist()
-columns = list(data1.columns)
+#-------------------------------------------------------------------------------------------------------------------
+
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -30,6 +35,37 @@ def custom_loss(y_true, y_pred):
 custom_scorer = make_scorer(custom_loss, greater_is_better=False)
 
 #-------------------------------------------------------------------------------------------------------------------
+
+@app.route('/train_model', methods=['POST'])
+def train_model():
+
+    # Charger les données
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
+    sk_ids_list = data1.index.tolist()
+    columns = list(data1.columns)
+
+    X = data1.drop(columns=["TARGET"])
+    y = data1["TARGET"]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    model_xgb_opti = xgb.XGBClassifier(max_depth=7, learning_rate=0.1, n_estimators=200)
+    pipeline = imPipeline([("smote", SMOTE()), ("xgb", model_xgb_opti)])
+    
+    pipeline.fit(X_train, y_train)
+
+    # Sauvegarde du modèle entraîné
+    dump(pipeline, 'modele_xgb.joblib')
+    
+    try:
+        loaded_data = load('modele_xgb.joblib')
+    except FileNotFoundError:
+        print("Error: The modele_xgb.joblib file was not found.")
+
+    app.model = loaded_data  # Charger le modèle directement comme app.model
+
+    return jsonify({'message': 'Model trained and saved successfully!'})
+
+#---------------------------------------------------------------------------------------------------------------------------------
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -45,7 +81,7 @@ def index():
         sk_id = int(request.form.get('SK_ID_CURR', 100002))
         all_results = display_info_for_sk_id(sk_id)
         
-        selected_columns = request.form.getlist('columns')
+        selected_columns = request.form.getlist('selected_columns')
         for col in selected_columns:
             result = {
                 "name": col,
@@ -58,13 +94,18 @@ def index():
 
 #-------------------------------------------------------------------------------------------------------------------
 
+all_possible_columns = ["EXT_SOURCE_3", "EXT_SOURCE_2", "NAME_INCOME_TYPE_Working", "NAME_EDUCATION_TYPE_Secondary / secondary special", "NAME_EDUCATION_TYPE_Higher education", "OCCUPATION_TYPE_Core staff", "FLAG_DOCUMENT_3", "AMT_REQ_CREDIT_BUREAU_HOUR", "CODE_GENDER", "PAYMENT_RATE"]
+
+#-------------------------------------------------------------------------------------------------------------------
 def find_decile(value, column):
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
     decile = pd.qcut(data1[column], 10, labels=False, duplicates='drop')
     return str(decile.loc[value] + 1) + "/10"
 
 #-------------------------------------------------------------------------------------------------------------------
 
 def display_info_for_sk_id(sk_id):
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
     result = {}
     
     for col in data1.columns:
@@ -90,12 +131,6 @@ def display_info_for_sk_id(sk_id):
 
 #-------------------------------------------------------------------------------------------------------------------
 
-# Charger le modèle
-loaded_data = load('xgb_model.joblib')
-model = loaded_data['model']
-
-#-------------------------------------------------------------------------------------------------------------------
-
 @app.route('/predict_api', methods=['POST'])
 def predict_api():
     # Récupérer les données du corps de la requête
@@ -110,8 +145,8 @@ def predict_api():
 
     # Faire une prédiction
     try:
-        output = model.predict(data_df)
-        proba = model.predict_proba(data_df)[0][1]
+        output = app.model.predict(data_df)
+        proba = app.model.predict_proba(data_df)[0][1]
         result = {
             "probabilité": float(proba)
         }
@@ -149,7 +184,15 @@ def generate_reports():
 #Créer la route pour la collecte de data
 @app.route('/collect_data', methods=['POST'])
 def collect_and_save_data():
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
+    sk_ids_list = data1.index.tolist()
+    columns = list(data1.columns)
+    
+    selected_columns = request.form.getlist('selected_columns')
 
+    if not selected_columns:
+        selected_columns = all_possible_columns
+        
     # Récupération des valeurs
     remboursement = 0.0
     montant_emprunte = 0.0
@@ -194,11 +237,12 @@ def collect_and_save_data():
     data_df = pd.DataFrame([data])
 
     try:
-        proba = model.predict_proba(data_df)[0][1]
+        proba = app.model.predict_proba(data_df)[0][1]
         image_path = draw_client(proba)
-        lime_image_path = draw_lime(data_df, model)
+        lime_image_path = draw_lime(data_df, app.model)
     except ValueError as e:
         prediction_result = "Erreur lors de la prédiction: {}".format(str(e))
+
 
     # Définir la valeur de TARGET en fonction de la probabilité
     data["TARGET"] = 1 if proba >= 0.7 else 0
@@ -211,7 +255,7 @@ def collect_and_save_data():
 
     # Affichez les informations du tableau pour cet ID
     all_results = display_info_for_sk_id(new_index)
-    selected_columns = columns  # J'assume que vous voulez afficher toutes les colonnes ici. Sinon, ajustez cela en conséquence.
+
     selected_results = []
 
     for col in selected_columns:
@@ -222,7 +266,8 @@ def collect_and_save_data():
         }
         selected_results.append(result)
 
-    return render_template('home.html', columns=columns, sk_ids_list=sk_ids_list, SK_ID_CURR=new_index, selected_results=selected_results, prediction=proba, image_path=image_path)
+    return render_template('home.html', columns=all_possible_columns, sk_ids_list=sk_ids_list, SK_ID_CURR=new_index, selected_results=selected_results, prediction=proba, image_path=image_path)
+
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -367,4 +412,4 @@ def draw_lime(data_df, model):
 #-------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
