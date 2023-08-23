@@ -18,6 +18,10 @@ columns = list(data1.columns)
 #-------------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
+        # Mise à jour des données
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
+    sk_ids_list = data1.index.tolist()
+    columns = list(data1.columns)
     #Création entrée visu et colonnes
     sk_id = request.args.get('sk_id', 100002, type=int)
     selected_results = []
@@ -152,7 +156,11 @@ def collect_and_save_data():
     try:
         payment_rate = remboursement / montant_emprunte
     except ZeroDivisionError:
-        return "Erreur : Le montant emprunté ne peut pas être zéro."
+        if remboursement != 0:
+            return "Erreur : Le montant emprunté ne peut pas être zéro."
+        else:
+            payment_rate = 0  # Remboursement et montant emprunté sont tous les deux 0
+
 
     data = {
         "EXT_SOURCE_3": float(request.form.get('EXT_SOURCE_3')),
@@ -184,8 +192,6 @@ def collect_and_save_data():
     data_df = pd.DataFrame([data])
 
     # Enregistre les données
-    save_data(data)
-
     new_index = save_data(data)
 
     # Affichez les informations du tableau pour cet ID
