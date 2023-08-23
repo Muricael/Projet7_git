@@ -30,7 +30,7 @@ def generate_index_page(reports_dir, reports):
                     margin-bottom: 20px;
                 }
                 a {
-                    color: #00CCFF;
+                    color: hsl(54, 100%, 50%);
                     text-decoration: none;
                     margin-bottom: 10px;
                     display: block;
