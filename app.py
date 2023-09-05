@@ -18,6 +18,10 @@ columns = list(data1.columns)
 #-------------------------------------------------------------------------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def index():
+        # Mise à jour des données
+    data1 = pd.read_csv('complet_data.csv', index_col="SK_ID_CURR")
+    sk_ids_list = data1.index.tolist()
+    columns = list(data1.columns)
     #Création entrée visu et colonnes
     sk_id = request.args.get('sk_id', 100002, type=int)
     selected_results = []
@@ -152,7 +156,11 @@ def collect_and_save_data():
     try:
         payment_rate = remboursement / montant_emprunte
     except ZeroDivisionError:
-        return "Erreur : Le montant emprunté ne peut pas être zéro."
+        if remboursement != 0:
+            return "Erreur : Le montant emprunté ne peut pas être zéro."
+        else:
+            payment_rate = 0  # Remboursement et montant emprunté sont tous les deux 0
+
 
     data = {
         "EXT_SOURCE_3": float(request.form.get('EXT_SOURCE_3')),
@@ -184,8 +192,6 @@ def collect_and_save_data():
     data_df = pd.DataFrame([data])
 
     # Enregistre les données
-    save_data(data)
-
     new_index = save_data(data)
 
     # Affichez les informations du tableau pour cet ID
@@ -214,11 +220,13 @@ def save_data(data):
     df_test = pd.read_csv("test_data.csv", index_col=0)
 
     # Récupère le dernier index de test_data.csv et l'incrémente
-    last_index_test = df_test.index[-1] if not df_test.empty else 0
+    last_index_test = int(df_test.index[-1] if not df_test.empty else 0)
     new_index_test = last_index_test + 1
 
     # Ajoutez la nouvelle entrée avec le nouvel index pour test_data.csv
-    df_test = df_test.append(pd.Series(data, name=new_index_test))
+    new_series = pd.Series(data, name=new_index_test)
+    df_test = pd.concat([df_test, new_series], axis=1)
+
 
     # Enregistrez les données mises à jour dans test_data.csv
     df_test.to_csv("test_data.csv")
@@ -228,7 +236,9 @@ def save_data(data):
     df_complet = pd.read_csv("complet_data.csv", index_col=0)
     last_index_complet = df_complet.index[-1] if not df_complet.empty else 0
     new_index_complet = last_index_complet + 1
-    df_complet = df_complet.append(pd.Series(data, name=new_index_complet))
+    new_series_complet = pd.Series(data, name=new_index_complet)
+    df_complet = pd.concat([df_complet, new_series_complet], axis=1)
+    
     df_complet.to_csv("complet_data.csv")
 
     return new_index_complet  # retourne l'index créé pour complet_data.csv pour le tableau
