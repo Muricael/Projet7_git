@@ -5,6 +5,7 @@ import json
 import time
 from joblib import load
 import requests
+import os
 
 import dash
 import dash_bootstrap_components as dbc
@@ -166,8 +167,8 @@ app.layout = dbc.Container([
                     dcc.RadioItems(
                         id='input-indic_doc_3',
                         options=[
-                            {'label': '  Oui', 'value': True},
-                            {'label': '  Non', 'value': False}
+                            {'label': '  Oui', 'value': 1},
+                            {'label': '  Non', 'value': 0}
                         ],
                         inline=True,  
                         labelStyle={'display': 'inline-block', 'margin-right': '20px'}
@@ -188,8 +189,8 @@ app.layout = dbc.Container([
                     dcc.RadioItems(
                         id='input-sexe',
                         options=[
-                            {'label': '  Homme', 'value': True},
-                            {'label': '  Femme', 'value': False}
+                            {'label': '  Homme', 'value': 1},
+                            {'label': '  Femme', 'value': 0}
                         ],
                         inline=True,  
                         labelStyle={'display': 'inline-block', 'margin-right': '20px'}
@@ -358,11 +359,23 @@ def add_new_client(n_clicks, source_3, source_2, travail, lycee, etudesup,
         # Décision du crédit
         credit_decision, probability = get_credit_decision(model, new_row)
         new_row["TARGET"] = credit_decision
+        
+        # Chemin lime
+        file_path = "assets/lime_explanation.png"
+
+        # Vérifier et suppr. lime_explanation
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print("Le fichier a été supprimé.")
+        else:
+            pass
 
         fig = jauge_pret_plotly(probability)
         new_df = pd.DataFrame([new_row])
         df = pd.concat([df, new_df], ignore_index=True)
+        df2 = pd.concat([test_df, new_df], ignore_index=True)
         df.to_csv("complet_data.csv", index=False)
+        df2.to_csv("test_data.csv", index=False)
         decision = credit_decision
         lime_image = draw_lime(new_df, model)
 
@@ -376,4 +389,3 @@ def add_new_client(n_clicks, source_3, source_2, travail, lycee, etudesup,
 
 if __name__ == '__main__':
     app.run_server(debug=False)
-
