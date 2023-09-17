@@ -36,6 +36,8 @@ model = loaded_data['model']
 # Initialiser l'appli
 app = dash.Dash(__name__,  suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
 
+server = app.server
+
 # Layout
 app.layout = dbc.Container([
     dbc.Row([
