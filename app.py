@@ -17,7 +17,7 @@ from lime import lime_tabular
 
 from utiles import (calculate_payment_rate, 
                    get_credit_decision, 
-                   custom_loss, jauge_pret_plotly,
+                    jauge_pret_plotly,
                    draw_lime)
 
 
