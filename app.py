@@ -9,7 +9,7 @@ import os
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc, Input, Output, State, dash_table
+from dash import Dash, html, dcc, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 
 import lime
@@ -34,7 +34,7 @@ loaded_data = load('xgb_model.joblib')
 model = loaded_data['model']
 
 # Initialiser l'appli
-app = dash.Dash(__name__,  suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
+app = Dash(__name__,  suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
 
 server = app.server
 
@@ -390,4 +390,4 @@ def add_new_client(n_clicks, source_3, source_2, travail, lycee, etudesup,
     return decision, True, new_data, new_columns, n_clicks, dash.no_update, dash.no_update, dash.no_update
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run(debug=False, port=int(os.environ.get("PORT", 8050)))
