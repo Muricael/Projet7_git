@@ -14,7 +14,7 @@ from dash.exceptions import PreventUpdate
 
 import lime
 from lime import lime_tabular
-
+from waitress import serve
 from utiles import (calculate_payment_rate, 
                    get_credit_decision, 
                     jauge_pret_plotly,
