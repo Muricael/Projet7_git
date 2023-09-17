@@ -20,6 +20,9 @@ from utiles import (calculate_payment_rate,
                     jauge_pret_plotly,
                    draw_lime)
 
+# Initialiser l'appli
+app = Dash(__name__,  suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
+server = app.server
 
 df = pd.read_csv("complet_data.csv", index_col="SK_ID_CURR")
 df = df.reset_index()
@@ -33,10 +36,6 @@ test_y = test_df['TARGET']
 loaded_data = load('xgb_model.joblib')
 model = loaded_data['model']
 
-# Initialiser l'appli
-app = Dash(__name__,  suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.DARKLY])
-
-server = app.server
 
 # Layout
 app.layout = dbc.Container([
@@ -390,4 +389,4 @@ def add_new_client(n_clicks, source_3, source_2, travail, lycee, etudesup,
     return decision, True, new_data, new_columns, n_clicks, dash.no_update, dash.no_update, dash.no_update
 
 if __name__ == '__main__':
-    app.run(debug=False, port=int(os.environ.get("PORT", 8050)))
+    app.run(debug=False)
